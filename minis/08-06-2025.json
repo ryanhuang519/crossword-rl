@@ -1,0 +1,309 @@
+{
+  "date": "08-06-2025",
+  "width": 5,
+  "height": 5,
+  "cells": [
+    {
+      "answer": null,
+      "label": null,
+      "clues": []
+    },
+    {
+      "answer": null,
+      "label": null,
+      "clues": []
+    },
+    {
+      "answer": "H",
+      "label": "1",
+      "clues": [
+        0,
+        5
+      ]
+    },
+    {
+      "answer": "I",
+      "label": "2",
+      "clues": [
+        0,
+        6
+      ]
+    },
+    {
+      "answer": "P",
+      "label": "3",
+      "clues": [
+        0,
+        7
+      ]
+    },
+    {
+      "answer": "S",
+      "label": "4",
+      "clues": [
+        1,
+        8
+      ]
+    },
+    {
+      "answer": "H",
+      "label": "5",
+      "clues": [
+        1,
+        9
+      ]
+    },
+    {
+      "answer": "A",
+      "label": null,
+      "clues": [
+        1,
+        5
+      ]
+    },
+    {
+      "answer": "D",
+      "label": null,
+      "clues": [
+        1,
+        6
+      ]
+    },
+    {
+      "answer": "E",
+      "label": null,
+      "clues": [
+        1,
+        7
+      ]
+    },
+    {
+      "answer": "O",
+      "label": "6",
+      "clues": [
+        2,
+        8
+      ]
+    },
+    {
+      "answer": "U",
+      "label": null,
+      "clues": [
+        2,
+        9
+      ]
+    },
+    {
+      "answer": "T",
+      "label": null,
+      "clues": [
+        2,
+        5
+      ]
+    },
+    {
+      "answer": "E",
+      "label": null,
+      "clues": [
+        2,
+        6
+      ]
+    },
+    {
+      "answer": "R",
+      "label": null,
+      "clues": [
+        2,
+        7
+      ]
+    },
+    {
+      "answer": "D",
+      "label": "7",
+      "clues": [
+        3,
+        8
+      ]
+    },
+    {
+      "answer": "E",
+      "label": null,
+      "clues": [
+        3,
+        9
+      ]
+    },
+    {
+      "answer": "C",
+      "label": null,
+      "clues": [
+        3,
+        5
+      ]
+    },
+    {
+      "answer": "A",
+      "label": null,
+      "clues": [
+        3,
+        6
+      ]
+    },
+    {
+      "answer": "F",
+      "label": null,
+      "clues": [
+        3,
+        7
+      ]
+    },
+    {
+      "answer": "A",
+      "label": "8",
+      "clues": [
+        4,
+        8
+      ]
+    },
+    {
+      "answer": "S",
+      "label": null,
+      "clues": [
+        4,
+        9
+      ]
+    },
+    {
+      "answer": "H",
+      "label": null,
+      "clues": [
+        4,
+        5
+      ]
+    },
+    {
+      "answer": null,
+      "label": null,
+      "clues": []
+    },
+    {
+      "answer": null,
+      "label": null,
+      "clues": []
+    }
+  ],
+  "clues": [
+    {
+      "label": "1",
+      "direction": "Across",
+      "cells": [
+        2,
+        3,
+        4
+      ],
+      "hint": "Stylish"
+    },
+    {
+      "label": "4",
+      "direction": "Across",
+      "cells": [
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "hint": "Something a beach umbrella provides"
+    },
+    {
+      "label": "6",
+      "direction": "Across",
+      "cells": [
+        10,
+        11,
+        12,
+        13,
+        14
+      ],
+      "hint": "___ Banks, North Carolina"
+    },
+    {
+      "label": "7",
+      "direction": "Across",
+      "cells": [
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "hint": "Unlikely to keep you up at night, in a way"
+    },
+    {
+      "label": "8",
+      "direction": "Across",
+      "cells": [
+        20,
+        21,
+        22
+      ],
+      "hint": "The eruption of Mount St. Helens released 520 million tons of it"
+    },
+    {
+      "label": "1",
+      "direction": "Down",
+      "cells": [
+        2,
+        7,
+        12,
+        17,
+        22
+      ],
+      "hint": "Come out of one's shell"
+    },
+    {
+      "label": "2",
+      "direction": "Down",
+      "cells": [
+        3,
+        8,
+        13,
+        18
+      ],
+      "hint": "Bright ___"
+    },
+    {
+      "label": "3",
+      "direction": "Down",
+      "cells": [
+        4,
+        9,
+        14,
+        19
+      ],
+      "hint": "\"Fab!\""
+    },
+    {
+      "label": "4",
+      "direction": "Down",
+      "cells": [
+        5,
+        10,
+        15,
+        20
+      ],
+      "hint": "Starry or Squirt"
+    },
+    {
+      "label": "5",
+      "direction": "Down",
+      "cells": [
+        6,
+        11,
+        16,
+        21
+      ],
+      "hint": "Color tones"
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+solve this crossword:
+```
+# Crossword Puzzle Serialization
+
+## Grid (5x5)
+Legend:
+- `#` = black square
+- `.` = empty white square
+
+Grid layout:
+#123#
+4...5
+6....
+7....
+#8..#
+
+## Clues
+
+### Across
+1A: Key above Caps Lock  
+4A: Biased sports fan  
+6A: What puts the "i" in Silicon Valley?  
+7A: Triangular road sign  
+8A: Items in a music library, for short  
+
+### Down
+1D: Conversation subject  
+2D: Pumped up  
+3D: "Silver ___" (Christmas classic)  
+4D: Farm fodder  
+5D: Like pants in the classic Nantucket style  
+```
+
+#TAB#
+HOMER
+APPLE
+YIELD
+#CDS#
+
