@@ -4,23 +4,14 @@
 from __future__ import annotations
 
 import argparse
-import io
 import json
-from contextlib import redirect_stdout
-from dataclasses import asdict
 from pathlib import Path
 from typing import Any, List, Optional, Tuple
 
 from dotenv import load_dotenv
-from litellm import completion
-from litellm.types.utils import Choices, Message
+from litellm import Choices, completion
 
-from nyt import (
-    MiniCrossword,
-    build_mini_from_api,
-    load_cached_mini,
-    load_remote_json,
-)
+from nyt import MiniCrossword, load_from_remote_or_cache
 
 SYSTEM_PROMPT = """
 You're a crossword expert.
@@ -39,7 +30,8 @@ After each guess, I will show you what the puzzle looks like.
 """
 # you can make multiple moves in a single response by comma separating them, like "guess 1a=red, guess 1d=brown". if any of the moves are invalid, then all the moves after that will not be run.
 
-DEFAULT_MODEL = "groq/openai/gpt-oss-120b"
+# DEFAULT_MODEL = "groq/openai/gpt-oss-120b"
+DEFAULT_MODEL = "groq/openai/gpt-oss-20b"
 DEFAULT_MAX_TURNS = 30
 
 RESET_COLOR = "\033[0m"
@@ -137,159 +129,6 @@ def log_debug(enabled: bool, title: str, payload: Any) -> None:
     print_message("system", formatted, annotation=f"debug {title}")
 
 
-def load_mini(date_text: str, *, force_download: bool = False) -> MiniCrossword:
-    cache_path = Path("minis") / f"{date_text}.json"
-
-    if cache_path.exists() and not force_download:
-        print(f"Loaded cached puzzle for {date_text} from {cache_path}.")
-        return load_cached_mini(cache_path)
-
-    data = load_remote_json(date_text)
-    mini = build_mini_from_api(date_text, data)
-    cache_path.parent.mkdir(parents=True, exist_ok=True)
-    with cache_path.open("w", encoding="utf-8") as f:
-        json.dump(asdict(mini), f, ensure_ascii=False, indent=2)
-    print(f"Downloaded puzzle for {date_text} and cached to {cache_path}.")
-    return mini
-
-
-def render_start(mini: MiniCrossword) -> str:
-    buffer = io.StringIO()
-    with redirect_stdout(buffer):
-        mini.render_starting_puzzle()
-    return buffer.getvalue().strip()
-
-
-def render_current(mini: MiniCrossword, moves: List[str]) -> Tuple[str, Tuple[int, int, int]]:
-    buffer = io.StringIO()
-    with redirect_stdout(buffer):
-        stats = mini.render(moves, show_progress=True)
-    return buffer.getvalue().strip(), stats
-
-
-def extract_segments(raw_response: str) -> List[str]:
-    segments: List[str] = []
-    for line in raw_response.splitlines():
-        cleaned = line.strip().rstrip(".")
-        if not cleaned:
-            continue
-        for part in cleaned.split(","):
-            candidate = part.strip()
-            if not candidate:
-                continue
-            lowered = candidate.lower()
-            if lowered.startswith("guess") or lowered.startswith("delete") or "=" in candidate:
-                segments.append(candidate)
-    return segments
-
-
-def apply_segments(mini: MiniCrossword, moves: List[str], segments: List[str]) -> Tuple[str, bool]:
-    feedback_lines: List[str] = []
-    puzzle_complete = False
-    invalid_encountered = False
-
-    for segment in segments:
-        if invalid_encountered:
-            break
-        try:
-            mini.play_move(segment, moves)
-        except ValueError as exc:
-            feedback_lines.append(f"Invalid move '{segment}': {exc}")
-            feedback_lines.append("Remaining moves after this were not applied.")
-            invalid_encountered = True
-            break
-
-        letters, filled, correct, total = mini._compute_board_state(moves)  # type: ignore[attr-defined]
-        if correct == total:
-            puzzle_complete = True
-            break
-
-    board_text, stats = render_current(mini, moves)
-    filled, correct, total = stats
-
-    if puzzle_complete:
-        feedback_lines.append("Puzzle complete! 🎉")
-    elif invalid_encountered:
-        feedback_lines.append("Please submit another clue.")
-    elif segments:
-        feedback_lines.append("Valid guess!")
-        feedback_lines.append("")
-        feedback_lines.append("Please submit another clue.")
-
-    feedback_lines.append("Grid layout:")
-    feedback_lines.extend(board_text.splitlines())
-
-    if not puzzle_complete:
-        feedback_lines.insert(1, f"Progress: {filled}/{total} filled, {correct}/{total} correct.")
-
-    return "\n".join(feedback_lines).strip(), puzzle_complete
-
-
-def send_noop_feedback(mini: MiniCrossword, moves: List[str]) -> str:
-    board_text, stats = render_current(mini, moves)
-    filled, correct, total = stats
-
-    lines = [
-        "No valid moves detected. Respond with moves like 'guess 1a=word' or 'delete 1d'.",
-        f"Progress: {filled}/{total} filled, {correct}/{total} correct.",
-        "",
-        "Grid layout:",
-    ]
-    lines.extend(board_text.splitlines())
-
-    return "\n".join(lines)
-
-
-def extract_assistant_content(choice: Any) -> tuple[str | None, Optional[str]]:
-    reasoning_text: Optional[str] = None
-
-    if isinstance(choice, Choices):
-        message_obj = choice.message if isinstance(choice.message, Message) else None
-        if message_obj is not None:
-            content = getattr(message_obj, "content", None)
-            if isinstance(content, str) and content:
-                reasoning_text = getattr(message_obj, "reasoning_content", None) or getattr(message_obj, "reasoning", None)  # type: ignore[attr-defined]
-                return content, reasoning_text
-
-        text_value = getattr(choice, "text", None)
-        if isinstance(text_value, str) and text_value:
-            return text_value, reasoning_text
-
-        delta = getattr(choice, "delta", None)
-        if delta is not None:
-            content = getattr(delta, "content", None)
-            if isinstance(content, str) and content:
-                reasoning_text = getattr(delta, "reasoning_content", None) or getattr(delta, "reasoning", None)  # type: ignore[attr-defined]
-                return content, reasoning_text
-
-        return None, reasoning_text
-
-    if isinstance(choice, dict):
-        message = choice.get("message")
-        if isinstance(message, dict):
-            content = message.get("content")
-            if isinstance(content, str) and content:
-                reasoning_text = message.get("reasoning_content") or message.get("reasoning")
-                return content, reasoning_text
-
-        content = choice.get("content")
-        if isinstance(content, str) and content:
-            return content, None
-
-        text_value = choice.get("text")
-        if isinstance(text_value, str) and text_value:
-            return text_value, None
-
-        delta = choice.get("delta")
-        if isinstance(delta, dict):
-            content = delta.get("content")
-            if isinstance(content, str) and content:
-                reasoning_text = delta.get("reasoning_content") or delta.get("reasoning")
-                return content, reasoning_text
-
-    return None, reasoning_text
-
-
 def run_agent(
     mini: MiniCrossword,
     *,
@@ -300,18 +139,16 @@ def run_agent(
     reasoning: bool,
 ) -> None:
     moves: List[str] = []
-    history = [
-        {"role": "system", "content": SYSTEM_PROMPT},
-    ]
+    history = [{"role": "system", "content": SYSTEM_PROMPT}]
 
     print_message("system", SYSTEM_PROMPT, annotation="prompt")
 
-    starting_layout = render_start(mini)
-    print_message("user", starting_layout, annotation="turn 0")
+    starting_message = mini.render(moves)
+    print_message("user", starting_message, annotation="turn 0")
+    history.append({"role": "user", "content": starting_message})
 
-    history.append({"role": "user", "content": starting_layout})
-
-    for turn in range(1, max_turns + 1):
+    turn = 1
+    while turn <= max_turns:
         log_debug(debug, f"request turn {turn}", history)
         try:
             response = completion(
@@ -330,11 +167,12 @@ def run_agent(
             print_message("system", "Model response did not include choices. Stopping.", annotation=f"turn {turn}")
             return
 
-        choice_payload = choices[0]
-        assistant_reply, reasoning_text = extract_assistant_content(choice_payload)
+        choice = choices[0]
+        assert isinstance(choice, Choices)
+        assistant_reply, reasoning_text = choice.message.content, getattr(choice.message, "reasoning", None)
         assistant_reply = (assistant_reply or "").strip()
         if not assistant_reply:
-            log_debug(debug, f"empty-choice turn {turn}", choice_payload)
+            log_debug(debug, f"empty-choice turn {turn}", choice)
             print_message("system", "Received empty response from model. Stopping.", annotation=f"turn {turn}")
             return
 
@@ -342,30 +180,26 @@ def run_agent(
             print_message("assistant", reasoning_text.strip(), annotation=f"turn {turn} reasoning")
 
         print_message("assistant", assistant_reply, annotation=f"turn {turn}")
-        history.append({"role": "assistant", "content": assistant_reply})
+        history.append({"role": "assistant", "content": f"<reasoning>{reasoning_text}</reasoning>\n{assistant_reply}"})
 
-        segments = extract_segments(assistant_reply)
-        if not segments:
-            feedback = send_noop_feedback(mini, moves)
-            print_message("user", feedback, annotation=f"turn {turn}")
-            history.append({"role": "user", "content": feedback})
-            continue
+        feedback = mini.play_move(assistant_reply, moves)
 
-        feedback, puzzle_complete = apply_segments(mini, moves, segments)
         print_message("user", feedback, annotation=f"turn {turn}")
         history.append({"role": "user", "content": feedback})
 
-        if puzzle_complete:
-            print_message("system", "Crossword solved by the agent!", annotation="complete")
-            return
+        if "Puzzle Complete" in feedback:
+            print_message("system", "Puzzle completed!", annotation="status")
+            break
 
-    print_message("system", f"Reached max turns ({max_turns}) without completing the puzzle.", annotation="status")
+        turn += 1
+    else:
+        print_message("system", f"Reached max turns ({max_turns}) without completing the puzzle.", annotation="status")
 
 
 def main() -> None:
     load_dotenv()
     args = parse_args()
-    mini = load_mini(args.date, force_download=args.force_download)
+    mini = load_from_remote_or_cache(args.date)
     run_agent(
         mini,
         model=args.model,

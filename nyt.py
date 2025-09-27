@@ -171,29 +171,34 @@ class MiniCrossword:
 
         return format_direction("Across"), format_direction("Down")
 
-    def _print_grid_and_clues(
+    def _build_grid_and_clues_lines(
         self,
         grid_lines: list[str],
         across: list[str],
         down: list[str],
-        blank_lines: list[str] | None = None,
-    ) -> None:
-        print("# Crossword Puzzle Serialization\n")
-        print(f"## Grid ({self.height}x{self.width})")
-        print("Legend:")
-        print("- `##` = black square")
-        print("- `..` = empty white square")
-        print("- Number = empty white square that is the start of a clue, either down or across\n")
-        print("Grid layout:")
-        for row in grid_lines:
-            print(row)
-        print("\n## Clues\n")
-        print("### Across")
+    ) -> list[str]:
+        lines = [
+            "# Crossword Puzzle Serialization",
+            f"## Grid ({self.height}x{self.width})",
+            "Legend:",
+            "- `##` = black square",
+            "- `..` = empty white square",
+            "- Number = empty white square that is the start of a clue, either down or across",
+            "Grid layout:",
+        ]
+
+        lines.extend(grid_lines)
+        lines.extend(["", "## Clues", "", "### Across"])
+
         for clue in across:
-            print(clue + "  ")
-        print("\n### Down")
+            lines.append(f"{clue}  ")
+
+        lines.extend(["", "### Down"])
+
         for clue in down:
-            print(clue + "  ")
+            lines.append(f"{clue}  ")
+
+        return lines
 
     def _compute_board_state(self, moves: list[str]) -> tuple[list[str | None], int, int, int]:
         letters: list[str | None] = [None] * len(self.cells)
@@ -236,45 +241,98 @@ class MiniCrossword:
 
         return letters, filled, correct, total
 
-    def render_starting_puzzle(self) -> None:
-        grid_lines = self._grid_layout(letters=None)
-        across, down = self._format_clue_lines()
-        self._print_grid_and_clues(grid_lines, across, down)
 
-    def render(self, moves: list[str], *, show_progress: bool = True) -> tuple[int, int, int]:
+    def render(self, moves: list[str]) -> str:
         letters, filled, correct, total = self._compute_board_state(moves)
         grid_lines = self._grid_layout(letters)
-        blank_lines = self._grid_layout(letters=None) if any(letters) else None
         across, down = self._format_clue_lines()
-        self._print_grid_and_clues(grid_lines, across, down, blank_lines=blank_lines)
-        if show_progress:
-            print(f"\nProgress: {filled}/{total} filled, {correct}/{total} correct")
-        return filled, correct, total
 
-    def play_move(self, raw_move: str, moves: list[str]) -> None:
-        parsed = self._parse_move(raw_move)
+        lines = self._build_grid_and_clues_lines(grid_lines, across, down)
+
+        return "\n".join(lines)
+
+    def play_move(self, move_input: str, moves: list[str]) -> str:
+        stripped = move_input.strip()
+        if not stripped:
+            return ""
+
+        segments = [part.strip() for part in stripped.split(",") if part.strip()]
+        if not segments:
+            letters, filled, correct, total = self._compute_board_state(moves)
+            grid_lines = self._grid_layout(letters)
+            lines: list[str] = [
+                "No valid moves detected. Respond with moves like 'guess 1A=word' or 'delete 1D'.",
+                "",
+                "Grid layout:",
+            ]
+            lines.extend(grid_lines)
+            lines.append("")
+            if correct == total and total > 0:
+                lines.append("Puzzle Complete! 🎉")
+            return "\n".join(lines)
+
         clue_map = self._clue_map()
-        clue = clue_map.get(parsed.clue_key)
+        failures: list[str] = []
 
-        if clue is None:
-            raise ValueError(f"Unknown clue '{parsed.clue_key}'.")
+        def record_failure(segment: str, message: str) -> None:
+            failures.append(f"Invalid Move '{segment}': {message}")
 
-        length = len(clue.cells)
+        one_success = False
+        for segment in segments:
+            try:
+                parsed = self._parse_move(segment)
+                one_success = True
+            except ValueError as exc:
+                record_failure(segment, str(exc))
+                continue
 
-        if parsed.action == "guess":
-            if parsed.guess is None:
-                raise ValueError("Guess requires an answer.")
-            guess = parsed.guess
-            if len(guess) != length:
-                noun = "letter" if length == 1 else "letters"
-                raise ValueError(f"{parsed.clue_key} is {length} {noun} long.")
-            if not guess.isalpha():
-                raise ValueError("Guesses must contain letters only.")
-            canonical = f"guess {parsed.clue_key}={guess}"
+            clue = clue_map.get(parsed.clue_key)
+            if clue is None:
+                record_failure(segment, f"Unknown clue '{parsed.clue_key}'.")
+                continue
+
+            length = len(clue.cells)
+
+            if parsed.action == "guess":
+                if parsed.guess is None:
+                    record_failure(segment, "Guess requires an answer.")
+                    continue
+                guess = parsed.guess
+                if len(guess) != length:
+                    noun = "letter" if length == 1 else "letters"
+                    record_failure(segment, f"{parsed.clue_key} is {length} {noun} long.")
+                    continue
+                if not guess.isalpha():
+                    record_failure(segment, "Guesses must contain letters only.")
+                    continue
+                canonical = f"guess {parsed.clue_key}={guess}"
+            else:
+                canonical = f"delete {parsed.clue_key}"
+
+            moves.append(canonical)
+
+        letters, filled, correct, total = self._compute_board_state(moves)
+        grid_lines = self._grid_layout(letters)
+
+        final_lines: list[str] = []
+        if failures:
+            final_lines.append("Failed move(s):")
+            final_lines.extend(failures)
+            final_lines.append("")
+
+        if one_success:
+            final_lines.append("Valid guess!\n")
+        final_lines.append("Grid layout:")
+        final_lines.extend(grid_lines)
+
+        if correct == total:
+            final_lines.append("")
+            final_lines.append("Puzzle Complete! 🎉")
         else:
-            canonical = f"delete {parsed.clue_key}"
+            final_lines.append("")
+            final_lines.append("Please submit another clue.")
 
-        moves.append(canonical)
+        return "\n".join(final_lines)
 
 
 
@@ -400,34 +458,28 @@ def load_cached_mini(path: Path) -> MiniCrossword:
 
     return MiniCrossword(**converted)
 
-
-def main():
-    args = parse_args()
-    cache_path = Path("minis") / f"{args.date}.json"
-
-    moves: list[str] = []
+def load_from_remote_or_cache(date_text: str) -> MiniCrossword:
+    cache_path = Path("minis") / f"{date_text}.json"
 
     if cache_path.exists():
         mini = load_cached_mini(cache_path)
-        print(f"Loaded cached puzzle for {args.date} from {cache_path}.")
+        print(f"Loaded cached puzzle for {date_text} from {cache_path}.")
     else:
-        data = load_remote_json(args.date)
-        mini = build_mini_from_api(args.date, data)
+        data = load_remote_json(date_text)
+        mini = build_mini_from_api(date_text, data)
         cache_path.parent.mkdir(parents=True, exist_ok=True)
         with cache_path.open("w", encoding="utf-8") as f:
             json.dump(asdict(mini), f, ensure_ascii=False, indent=2)
-        print(f"Downloaded puzzle for {args.date} and cached to {cache_path}.")
+        print(f"Downloaded puzzle for {date_text} and cached to {cache_path}.")
+    return mini
 
-    print("\nStarting layout:\n")
-    try:
-        filled, correct, total = mini.render(moves, show_progress=False)
-    except KeyboardInterrupt:
-        print("\nExiting. Progress saved.")
-        return
+def main():
+    args = parse_args()
+    mini = load_from_remote_or_cache(args.date)
 
-    if correct == total:
-        print("\nPuzzle complete! 🎉")
-        return
+    moves: list[str] = []
+    starting_view = mini.render(moves)
+    print(starting_view)
 
     prompt = "\033[94mEnter move (guess <clue>=<answer> / delete <clue>) or Ctrl-D to exit: \033[0m"
 
@@ -435,59 +487,20 @@ def main():
         try:
             move_input = input(prompt)
         except EOFError:
-            print("\nExiting. Progress saved.")
+            print("\nExiting.")
             break
         except KeyboardInterrupt:
-            print("\nExiting. Progress saved.")
+            print("\nExiting.")
             break
 
-        move_input = move_input.strip()
-        if not move_input:
+        response = mini.play_move(move_input, moves)
+        if not response:
             continue
 
-        segments = [part.strip() for part in move_input.split(",") if part.strip()]
-        if not segments:
-            continue
+        print(response)
 
-        puzzle_complete = False
-        invalid_move = False
-
-        for segment in segments:
-            try:
-                mini.play_move(segment, moves)
-            except ValueError as exc:
-                print(f"Invalid move '{segment}': {exc}")
-                invalid_move = True
-                break
-
-            letters, filled, correct, total = mini._compute_board_state(moves)
-            grid_lines = mini._grid_layout(letters)
-
-            try:
-                last = mini._parse_move(moves[-1])
-            except ValueError:
-                last = ParsedMove("guess", "", None)
-
-            if last.action == "delete":
-                print("Clue cleared!\n")
-            else:
-                print("Valid guess!\n")
-
-            print("Grid layout:")
-            for row in grid_lines:
-                print(row)
-
-            if correct == total:
-                print("\nPuzzle complete! 🎉")
-                puzzle_complete = True
-                break
-
-            print("\nPlease submit another clue.")
-
-        if puzzle_complete:
+        if "Puzzle Complete" in response:
             break
-        if invalid_move:
-            continue
 
 if __name__ == "__main__":
     main()

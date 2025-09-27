@@ -1,0 +1,581 @@
+{
+  "date": "08-09-2025",
+  "width": 7,
+  "height": 7,
+  "cells": [
+    {
+      "answer": "A",
+      "label": "1",
+      "clues": [
+        0,
+        8
+      ]
+    },
+    {
+      "answer": "M",
+      "label": "2",
+      "clues": [
+        0,
+        9
+      ]
+    },
+    {
+      "answer": "I",
+      "label": "3",
+      "clues": [
+        0,
+        10
+      ]
+    },
+    {
+      "answer": "A",
+      "label": "4",
+      "clues": [
+        0,
+        11
+      ]
+    },
+    {
+      "answer": "B",
+      "label": "5",
+      "clues": [
+        0,
+        12
+      ]
+    },
+    {
+      "answer": "L",
+      "label": "6",
+      "clues": [
+        0,
+        13
+      ]
+    },
+    {
+      "answer": "E",
+      "label": "7",
+      "clues": [
+        0,
+        14
+      ]
+    },
+    {
+      "answer": "P",
+      "label": "8",
+      "clues": [
+        1,
+        8
+      ]
+    },
+    {
+      "answer": "O",
+      "label": null,
+      "clues": [
+        1,
+        9
+      ]
+    },
+    {
+      "answer": "M",
+      "label": null,
+      "clues": [
+        1,
+        10
+      ]
+    },
+    {
+      "answer": "P",
+      "label": null,
+      "clues": [
+        1,
+        11
+      ]
+    },
+    {
+      "answer": "O",
+      "label": null,
+      "clues": [
+        1,
+        12
+      ]
+    },
+    {
+      "answer": "U",
+      "label": null,
+      "clues": [
+        1,
+        13
+      ]
+    },
+    {
+      "answer": "S",
+      "label": null,
+      "clues": [
+        1,
+        14
+      ]
+    },
+    {
+      "answer": "P",
+      "label": "9",
+      "clues": [
+        2,
+        8
+      ]
+    },
+    {
+      "answer": "O",
+      "label": null,
+      "clues": [
+        2,
+        9
+      ]
+    },
+    {
+      "answer": "M",
+      "label": null,
+      "clues": [
+        2,
+        10
+      ]
+    },
+    {
+      "answer": "P",
+      "label": null,
+      "clues": [
+        2,
+        11
+      ]
+    },
+    {
+      "answer": "O",
+      "label": null,
+      "clues": [
+        2,
+        12
+      ]
+    },
+    {
+      "answer": "M",
+      "label": null,
+      "clues": [
+        2,
+        13
+      ]
+    },
+    {
+      "answer": "S",
+      "label": null,
+      "clues": [
+        2,
+        14
+      ]
+    },
+    {
+      "answer": "E",
+      "label": "10",
+      "clues": [
+        3,
+        8
+      ]
+    },
+    {
+      "answer": "K",
+      "label": null,
+      "clues": [
+        3,
+        9
+      ]
+    },
+    {
+      "answer": "E",
+      "label": null,
+      "clues": [
+        3,
+        10
+      ]
+    },
+    {
+      "answer": null,
+      "label": null,
+      "clues": []
+    },
+    {
+      "answer": "T",
+      "label": "11",
+      "clues": [
+        4,
+        12
+      ]
+    },
+    {
+      "answer": "B",
+      "label": null,
+      "clues": [
+        4,
+        13
+      ]
+    },
+    {
+      "answer": "A",
+      "label": null,
+      "clues": [
+        4,
+        14
+      ]
+    },
+    {
+      "answer": "A",
+      "label": "12",
+      "clues": [
+        5,
+        8
+      ]
+    },
+    {
+      "answer": "I",
+      "label": null,
+      "clues": [
+        5,
+        9
+      ]
+    },
+    {
+      "answer": "R",
+      "label": null,
+      "clues": [
+        5,
+        10
+      ]
+    },
+    {
+      "answer": "P",
+      "label": "13",
+      "clues": [
+        5,
+        15
+      ]
+    },
+    {
+      "answer": "L",
+      "label": null,
+      "clues": [
+        5,
+        12
+      ]
+    },
+    {
+      "answer": "A",
+      "label": null,
+      "clues": [
+        5,
+        13
+      ]
+    },
+    {
+      "answer": "Y",
+      "label": null,
+      "clues": [
+        5,
+        14
+      ]
+    },
+    {
+      "answer": "L",
+      "label": "14",
+      "clues": [
+        6,
+        8
+      ]
+    },
+    {
+      "answer": "E",
+      "label": null,
+      "clues": [
+        6,
+        9
+      ]
+    },
+    {
+      "answer": "S",
+      "label": null,
+      "clues": [
+        6,
+        10
+      ]
+    },
+    {
+      "answer": "S",
+      "label": null,
+      "clues": [
+        6,
+        15
+      ]
+    },
+    {
+      "answer": "E",
+      "label": null,
+      "clues": [
+        6,
+        12
+      ]
+    },
+    {
+      "answer": "R",
+      "label": null,
+      "clues": [
+        6,
+        13
+      ]
+    },
+    {
+      "answer": null,
+      "label": null,
+      "clues": []
+    },
+    {
+      "answer": null,
+      "label": null,
+      "clues": []
+    },
+    {
+      "answer": null,
+      "label": null,
+      "clues": []
+    },
+    {
+      "answer": "E",
+      "label": "15",
+      "clues": [
+        7,
+        10
+      ]
+    },
+    {
+      "answer": "G",
+      "label": null,
+      "clues": [
+        7,
+        15
+      ]
+    },
+    {
+      "answer": "G",
+      "label": null,
+      "clues": [
+        7,
+        12
+      ]
+    },
+    {
+      "answer": null,
+      "label": null,
+      "clues": []
+    },
+    {
+      "answer": null,
+      "label": null,
+      "clues": []
+    }
+  ],
+  "clues": [
+    {
+      "label": "1",
+      "direction": "Across",
+      "cells": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "hint": "Friendly and pleasant"
+    },
+    {
+      "label": "8",
+      "direction": "Across",
+      "cells": [
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13
+      ],
+      "hint": "Irritatingly self-important"
+    },
+    {
+      "label": "9",
+      "direction": "Across",
+      "cells": [
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20
+      ],
+      "hint": "Cheerleaders' accessories"
+    },
+    {
+      "label": "10",
+      "direction": "Across",
+      "cells": [
+        21,
+        22,
+        23
+      ],
+      "hint": "Barely ___ out a living"
+    },
+    {
+      "label": "11",
+      "direction": "Across",
+      "cells": [
+        25,
+        26,
+        27
+      ],
+      "hint": "\"We haven't decided yet,\" on schedules"
+    },
+    {
+      "label": "12",
+      "direction": "Across",
+      "cells": [
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34
+      ],
+      "hint": "Radio exposure for a song"
+    },
+    {
+      "label": "14",
+      "direction": "Across",
+      "cells": [
+        35,
+        36,
+        37,
+        38,
+        39,
+        40
+      ],
+      "hint": "___ of two evils"
+    },
+    {
+      "label": "15",
+      "direction": "Across",
+      "cells": [
+        44,
+        45,
+        46
+      ],
+      "hint": "Pancake mix ingredient"
+    },
+    {
+      "label": "1",
+      "direction": "Down",
+      "cells": [
+        0,
+        7,
+        14,
+        21,
+        28,
+        35
+      ],
+      "hint": "Challenge to a court ruling"
+    },
+    {
+      "label": "2",
+      "direction": "Down",
+      "cells": [
+        1,
+        8,
+        15,
+        22,
+        29,
+        36
+      ],
+      "hint": "Dodgers slugger Betts"
+    },
+    {
+      "label": "3",
+      "direction": "Down",
+      "cells": [
+        2,
+        9,
+        16,
+        23,
+        30,
+        37,
+        44
+      ],
+      "hint": "Deeply involve oneself (in)"
+    },
+    {
+      "label": "4",
+      "direction": "Down",
+      "cells": [
+        3,
+        10,
+        17
+      ],
+      "hint": "Smartphone download"
+    },
+    {
+      "label": "5",
+      "direction": "Down",
+      "cells": [
+        4,
+        11,
+        18,
+        25,
+        32,
+        39,
+        46
+      ],
+      "hint": "Illegal copy"
+    },
+    {
+      "label": "6",
+      "direction": "Down",
+      "cells": [
+        5,
+        12,
+        19,
+        26,
+        33,
+        40
+      ],
+      "hint": "Kind of support for the lower back"
+    },
+    {
+      "label": "7",
+      "direction": "Down",
+      "cells": [
+        6,
+        13,
+        20,
+        27,
+        34
+      ],
+      "hint": "English class assignment"
+    },
+    {
+      "label": "13",
+      "direction": "Down",
+      "cells": [
+        31,
+        38,
+        45
+      ],
+      "hint": "French soccer club that won its first Champions League title in 2025, for short"
+    }
+  ]
+}
