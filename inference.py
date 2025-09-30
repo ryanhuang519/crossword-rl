@@ -7,21 +7,28 @@ app = modal.App("gpt-oss-20b-inference")
 # Define the container image with all dependencies
 image = (
     modal.Image.debian_slim(python_version="3.12")
-    .pip_install("uv")
+    .apt_install("git")
+    # Install PyTorch nightly with CUDA 12.8
     .run_commands(
-        # Install PyTorch nightly with CUDA 12.8
-        "uv pip install --system --upgrade --pre torch torchvision --index-url https://download.pytorch.org/whl/nightly/cu128",
-        # Install core stack
-        'uv pip install --system "torch>=2.8.0" "triton>=3.4.0" numpy torchvision bitsandbytes "transformers>=4.55.3"',
-        # Install unsloth
-        'uv pip install --system "unsloth_zoo[base] @ git+https://github.com/unslothai/unsloth-zoo"',
-        'uv pip install --system "unsloth[base] @ git+https://github.com/unslothai/unsloth"',
-        'uv pip install --system git+https://github.com/triton-lang/triton.git@05b2c186c1b6c9a08375389d5efe9cb4c401c075#subdirectory=python/triton_kernels',
-        # Pin transformers/tokenizers
-        "uv pip install --system --upgrade --no-deps transformers==4.56.2 tokenizers",
-        # Install trl without deps
-        "uv pip install --system --no-deps trl==0.22.2",
+        "pip install --upgrade --pre torch torchvision --index-url https://download.pytorch.org/whl/nightly/cu128"
     )
+    # Install core stack
+    .uv_pip_install(
+        "torch>=2.8.0",
+        "triton>=3.4.0",
+        "numpy",
+        "torchvision",
+        "bitsandbytes",
+        "transformers>=4.55.3",
+    )
+    # Install unsloth
+    .uv_pip_install(
+        "unsloth_zoo[base] @ git+https://github.com/unslothai/unsloth-zoo",
+        "unsloth[base] @ git+https://github.com/unslothai/unsloth",
+        "git+https://github.com/triton-lang/triton.git@05b2c186c1b6c9a08375389d5efe9cb4c401c075#subdirectory=python/triton_kernels",
+    )
+    # Pin transformers/tokenizers and install trl
+    .uv_pip_install("transformers==4.56.2", "tokenizers", "trl==0.22.2")
 )
 
 
