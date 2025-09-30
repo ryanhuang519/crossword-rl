@@ -13,7 +13,7 @@ from litellm import Choices, completion
 
 from nyt import MiniCrossword, load_from_remote_or_cache
 
-SYSTEM_PROMPT = """
+MULTI_TURN_PROMPT = """
 You're a crossword expert.
 I will provide you with a 5x5 mini crossword and you will solve it 1 clue at a time.
 After each guess, I will validate your guess and send you the updated game board.
@@ -24,9 +24,28 @@ Guess in the format: "guess 1a=red"
 You can also delete guesses you believe to be incorrect using "delete 1a"
 You can only make 1 guess at a time. If you make more than 1 guess, really bad things will happen.
 
+DO NOT try to call a tool, simply respond with the response format. This is a multi-turn conversation.
+
 ## Important:
 Do not try solve the entire puzzle at once or reason about what the puzzle will look like.
 After each guess, I will show you what the puzzle looks like.
+"""
+
+SINGLE_TURN_PROMPT = """
+You're a crossword expert.
+I will provide you with a 5x5 mini crossword and you should solve the entire puzzle in one go.
+
+## Response format:
+Provide all your guesses in a single message using the format: "guess 1a=red"
+You can provide multiple guesses separated by commas, like: "guess 1a=red, guess 2d=blue, guess 3a=green"
+You can also delete guesses you believe to be incorrect using "delete 1a"
+
+DO NOT try to call a tool, simply respond with the response format. This is a multi-turn conversation.
+
+## Important:
+Try to solve the entire puzzle at once. Analyze all the clues together and provide your complete solution.
+Think about how the across and down clues intersect and use those intersections to validate your answers.
+Provide ALL your answers in ONE message to solve the puzzle as efficiently as possible.
 """
 # you can make multiple moves in a single response by comma separating them, like "guess 1a=red, guess 1d=brown". if any of the moves are invalid, then all the moves after that will not be run.
 
@@ -98,6 +117,11 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Print raw LLM payloads for debugging.",
     )
+    parser.add_argument(
+        "--multi-turn",
+        action="store_true",
+        help="Use multi-turn mode where the assistant solves 1 clue at a time.",
+    )
     return parser.parse_args()
 
 
@@ -137,11 +161,13 @@ def run_agent(
     max_turns: int,
     debug: bool,
     reasoning: bool,
+    multi_turn: bool,
 ) -> None:
     moves: List[str] = []
-    history = [{"role": "system", "content": SYSTEM_PROMPT}]
+    system_prompt = MULTI_TURN_PROMPT if multi_turn else SINGLE_TURN_PROMPT
+    history = [{"role": "system", "content": system_prompt}]
 
-    print_message("system", SYSTEM_PROMPT, annotation="prompt")
+    print_message("system", system_prompt, annotation="prompt")
 
     starting_message = mini.render(moves)
     print_message("user", starting_message, annotation="turn 0")
@@ -164,7 +190,7 @@ def run_agent(
         choices = list(response.choices or [])
         if not choices:
             log_debug(debug, f"empty-choices turn {turn}", response)
-            print_message("system", "Model response did not include choices. Stopping.", annotation=f"turn {turn}")
+            print_message("system", f"Model response did not include choices. Stopping. {response}", annotation=f"turn {turn}")
             return
 
         choice = choices[0]
@@ -173,7 +199,7 @@ def run_agent(
         assistant_reply = (assistant_reply or "").strip()
         if not assistant_reply:
             log_debug(debug, f"empty-choice turn {turn}", choice)
-            print_message("system", "Received empty response from model. Stopping.", annotation=f"turn {turn}")
+            print_message("system", f"Received empty response from model. Stopping. {response}", annotation=f"turn {turn}")
             return
 
         if reasoning and reasoning_text:
@@ -200,6 +226,7 @@ def main() -> None:
     load_dotenv()
     args = parse_args()
     mini = load_from_remote_or_cache(args.date)
+    mini.render_type = "coordinate"
     run_agent(
         mini,
         model=args.model,
@@ -207,6 +234,7 @@ def main() -> None:
         max_turns=args.max_turns,
         debug=args.debug,
         reasoning=args.reasoning,
+        multi_turn=args.multi_turn,
     )
 
 

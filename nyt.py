@@ -55,11 +55,20 @@ class MiniCrossword:
     height: int
     cells: list[MiniCell]
     clues: list[MiniClue]
+    render_type: str | None = None
     def __post_init_post_parse__(self) -> None:
         if self.width is None or self.height is None:
             raise ValueError("Puzzle dimensions are required.")
         if self.width <= 0 or self.height <= 0:
             raise ValueError("Puzzle dimensions must be positive integers.")
+
+        if self.render_type is not None:
+            normalized = self.render_type.lower()
+            if normalized not in {"coordinate"}:
+                raise ValueError(
+                    "render_type must be one of: 'coordinate'."
+                )
+            self.render_type = normalized
 
         expected_cells = self.width * self.height
         if len(self.cells) != expected_cells:
@@ -139,6 +148,9 @@ class MiniCrossword:
         raise ValueError("Unknown move action. Use 'guess' or 'delete'.")
 
     def _grid_layout(self, letters: list[str | None] | None) -> list[str]:
+        if self.render_type == "coordinate":
+            return self._coordinate_layout(letters)
+
         rows: list[list[str]] = [[] for _ in range(self.height)]
 
         for idx, cell in enumerate(self.cells):
@@ -156,6 +168,31 @@ class MiniCrossword:
                 rows[r].append("..")
 
         return ["".join(f" {token}" for token in row) for row in rows]
+
+    def _coordinate_layout(self, letters: list[str | None] | None) -> list[str]:
+        lines: list[str] = []
+        for row_idx in range(self.height):
+            parts: list[str] = []
+            for col_idx in range(self.width):
+                cell_index = row_idx * self.width + col_idx
+                cell = self.cells[cell_index]
+                label = cell.label
+                if cell.is_black():
+                    value = "black"
+                else:
+                    letter = None if letters is None else letters[cell_index]
+                    if letter:
+                        value = letter.upper()
+                    elif label:
+                        value = self._format_label(label)
+                    else:
+                        value = "."
+                parts.append(f"col{col_idx + 1} {value}")
+            row_line = f"Row{row_idx + 1}: {', '.join(parts)}"
+            if not row_line.endswith("."):
+                row_line += "."
+            lines.append(row_line)
+        return lines
 
     def _format_clue_lines(self) -> tuple[list[str], list[str]]:
         def format_direction(direction: str) -> list[str]:
@@ -181,11 +218,27 @@ class MiniCrossword:
             "# Crossword Puzzle Serialization",
             f"## Grid ({self.height}x{self.width})",
             "Legend:",
-            "- `##` = black square",
-            "- `..` = empty white square",
-            "- Number = empty white square that is the start of a clue, either down or across",
-            "Grid layout:",
         ]
+
+        if self.render_type == "coordinate":
+            lines.extend(
+                [
+                    "- `black` = black square",
+                    "- Number = clue label for the cell",
+                    "- `.` = empty white square without a label",
+                    "- Letter = filled entry",
+                ]
+            )
+        else:
+            lines.extend(
+                [
+                    "- `##` = black square",
+                    "- `..` = empty white square",
+                    "- Number = empty white square that is the start of a clue, either down or across",
+                ]
+            )
+
+        lines.append("Grid layout:")
 
         lines.extend(grid_lines)
         lines.extend(["", "## Clues", "", "### Across"])
@@ -330,7 +383,7 @@ class MiniCrossword:
             final_lines.append("Puzzle Complete! 🎉")
         else:
             final_lines.append("")
-            final_lines.append("Please submit another clue.")
+            final_lines.append("Please submit another guess.")
 
         return "\n".join(final_lines)
 
@@ -454,6 +507,7 @@ def load_cached_mini(path: Path) -> MiniCrossword:
             )
             for clue in clues_data
         ],
+        "render_type": payload.get("render_type"),
     }
 
     return MiniCrossword(**converted)
@@ -476,6 +530,7 @@ def load_from_remote_or_cache(date_text: str) -> MiniCrossword:
 def main():
     args = parse_args()
     mini = load_from_remote_or_cache(args.date)
+    mini.render_type = "coordinate"
 
     moves: list[str] = []
     starting_view = mini.render(moves)
